@@ -64,7 +64,7 @@
 #     data = request.data
 
 #     # Validate required fields
-#     required_fields = ['candidate_name', 'candidate_price', 'discount', 'description']
+#     required_fields = ['candidate_name', 'candidate_age', 'discount', 'description']
 #     for field in required_fields:
 #         if field not in data or not data[field]:
 #             return Response(
@@ -94,7 +94,7 @@
 #     candidate_data = {
 #         "candidate_name": data['candidate_name'],
 #         "candidate_image": candidate_image_base64,  # Store the image as base64 string
-#         "candidate_price": data['candidate_price'],
+#         "candidate_age": data['candidate_age'],
 #         "discount": data['discount'],
 #         "description": data['description']
 #     }
@@ -134,12 +134,13 @@ from io import BytesIO
 from bson import Binary
 import base64
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 
 # MongoDB connection
 client = MongoClient("mongodb+srv://1QoSRtE75wSEibZJ:1QoSRtE75wSEibZJ@cluster0.mregq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['Vote']
 users_collection = db['users']
-products_collection = db['candidates']
+candidates_collection = db['candidates']
 
 @api_view(['POST'])
 def signup(request):
@@ -179,14 +180,14 @@ def check_email(request):
 
 
 @api_view(['POST'])
-def add_product(request):
+def add_candidate(request):
     """
-    Endpoint to add a new product with image upload as base64 string.
+    Endpoint to add a new candidate with image upload as base64 string.
     """
     data = request.data
 
     # Validate required fields
-    required_fields = ['product_name', 'product_price', 'discount', 'description']
+    required_fields = ['candidate_name', 'candidate_age', 'description']
     for field in required_fields:
         if field not in data or not data[field]:
             return Response(
@@ -195,54 +196,64 @@ def add_product(request):
             )
 
     # Handle base64 image upload
-    product_image_base64 = data.get('product_image')
-    if not product_image_base64:
-        return Response({"detail": "Product image is required."}, status=status.HTTP_400_BAD_REQUEST)
+    candidate_image_base64 = data.get('candidate_image')
+    if not candidate_image_base64:
+        return Response({"detail": "candidate image is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         # Decode base64 string to binary (ensure no extra prefix is included)
-        if product_image_base64.startswith("data:image"):
-            product_image_base64 = product_image_base64.split(',')[1]  # Remove data:image/jpeg;base64, part
+        if candidate_image_base64.startswith("data:image"):
+            candidate_image_base64 = candidate_image_base64.split(',')[1]  # Remove data:image/jpeg;base64, part
         
-        image_data = base64.b64decode(product_image_base64)
+        image_data = base64.b64decode(candidate_image_base64)
 
         # Convert binary data to base64 string for response
-        product_image_base64 = base64.b64encode(image_data).decode('utf-8')  # Convert binary data back to base64 string
+        candidate_image_base64 = base64.b64encode(image_data).decode('utf-8')  # Convert binary data back to base64 string
 
     except Exception as e:
         return Response({"detail": "Invalid image format."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Prepare product data with image as base64 string
-    product_data = {
-        "product_name": data['product_name'],
-        "product_image": product_image_base64,  # Store the image as base64 string
-        "product_price": data['product_price'],
-        "discount": data['discount'],
+    # Prepare candidate data with image as base64 string
+    candidate_data = {
+        "candidate_name": data['candidate_name'],
+        "candidate_image": candidate_image_base64,  # Store the image as base64 string
+        "candidate_age": data['candidate_age'],
         "description": data['description']
     }
 
-    # Insert product into MongoDB
+    # Insert candidate into MongoDB
     try:
-        product_id = products_collection.insert_one(product_data).inserted_id
-        product = products_collection.find_one({"_id": ObjectId(product_id)})
-        product['_id'] = str(product['_id'])  # Convert ObjectId to string for JSON response
-        return Response(product, status=status.HTTP_201_CREATED)
+        candidate_id = candidates_collection.insert_one(candidate_data).inserted_id
+        candidate = candidates_collection.find_one({"_id": ObjectId(candidate_id)})
+        candidate['_id'] = str(candidate['_id'])  # Convert ObjectId to string for JSON response
+        return Response(candidate, status=status.HTTP_201_CREATED)
     except Exception as e:
-        return Response({"detail": "Error saving product to database."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"detail": "Error saving candidate to database."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
 
 @api_view(['GET'])
-def get_products(request):
-    # Fetch products from MongoDB
-    products = list(products_collection.find())
+def get_candidates(request):
+    # Fetch candidates from MongoDB
+    candidates = list(candidates_collection.find())
 
     # Convert ObjectId to string for JSON response
-    for product in products:
-        product['_id'] = str(product['_id'])
+    for candidate in candidates:
+        candidate['_id'] = str(candidate['_id'])
         # If you have binary images, you may want to encode them as base64
-        if isinstance(product.get('product_image'), bytes):
-            product['product_image'] = base64.b64encode(product['product_image']).decode('utf-8')
+        if isinstance(candidate.get('candidate_image'), bytes):
+            candidate['candidate_image'] = base64.b64encode(candidate['candidate_image']).decode('utf-8')
 
-    return Response(products)
+    return Response(candidates)
+
+def vote_candidate(request, id):
+    if request.method == "POST":
+        try:
+            candidate = candidates_collection.objects.get(pk=id)
+            candidate.elector_count += 1
+            candidate.save()
+            return JsonResponse({"message": "Vote registered successfully!"})
+        except candidates_collection.DoesNotExist:
+            return JsonResponse({"error": "Candidate not found."}, status=404)
+    return JsonResponse({"error": "Invalid request method."}, status=400)

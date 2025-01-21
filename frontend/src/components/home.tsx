@@ -1,65 +1,98 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Header from "./Header";
-import Footer from "./Footer";
 
-interface candidate {
+interface Candidate {
   _id: string;
   candidate_name: string;
-  candidate_price: number;
+  candidate_age: number;
   candidate_image: string;
   description: string;
-  discount: number;
+  elector_count: number;
 }
 
 const Home: React.FC = () => {
-  const [candidates, setcandidates] = useState<candidate[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
 
   useEffect(() => {
     // Fetch candidates from the backend
     axios
       .get("http://localhost:8000/api/candidates/")
       .then((response) => {
-        setcandidates(response.data); // Set candidates to the state
+        setCandidates(response.data);
       })
       .catch((error) => {
         console.error("Error fetching candidates:", error);
       });
   }, []);
 
+  const handleSelectCandidate = (id: string) => {
+    // Update elector count locally for immediate feedback
+    setCandidates((prevCandidates) =>
+      prevCandidates.map((candidate) =>
+        candidate._id === id
+          ? { ...candidate, elector_count: candidate.elector_count + 1 }
+          : candidate
+      )
+    );
+
+    // Optionally, update elector count on the backend
+    axios
+      .post(`http://localhost:8000/api/candidates/${id}/vote/`)
+      .catch((error) => console.error("Error updating elector count:", error));
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-700 via-blue-800 to-black text-white">
-      <Header />
-      <div className="container mx-auto p-8">
-        <h1 className="text-5xl font-bold text-center mb-6">Welcome to Our AMAZON</h1>
-        <p className="text-lg text-center mb-8">
-          This is an example of a home page with a header and footer.
+    <div className="min-h-screen bg-gradient-to-r from-indigo-900 via-black to-gray-900 text-white">
+      <div className="container mx-auto py-16 px-8">
+        <h1 className="text-5xl font-extrabold text-center mb-10 tracking-wide">
+          🌟 Vote for Your Favorite Candidate 🌟
+        </h1>
+        <p className="text-center text-lg text-gray-400 mb-12">
+          Make your voice count by voting for a candidate. Watch their elector
+          count increase in real time!
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {candidates.map((candidate) => (
             <div
               key={candidate._id}
-              className="bg-white text-black rounded-lg shadow-lg overflow-hidden"
+              className="bg-gradient-to-tr from-gray-800 via-gray-700 to-gray-600 rounded-3xl shadow-lg overflow-hidden transition-all hover:shadow-2xl hover:scale-105"
             >
-              <img
-                src={`data:image/jpeg;base64,${candidate.candidate_image}`}
-                alt={candidate.candidate_name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h2 className="text-2xl font-bold">{candidate.candidate_name}</h2>
-                <p className="text-lg text-gray-700 mt-2">{candidate.description}</p>
-                <p className="text-xl font-semibold text-blue-600 mt-4">${candidate.candidate_price}</p>
-                <p className="text-xl font-semibold text-red-600 mt-4">discount is ${candidate.discount}</p>
-                <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white mt-4">
-                  Add to Cart
-                </button>
+              <div className="relative">
+                <img
+                  src={`data:image/jpeg;base64,${candidate.candidate_image}`}
+                  alt={candidate.candidate_name}
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent text-white p-4">
+                  <h2 className="text-3xl font-bold">{candidate.candidate_name}</h2>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-300 italic mb-4">
+                  "{candidate.description}"
+                </p>
+                <p className="text-xl font-medium text-yellow-400">
+                  Age: {candidate.candidate_age} years
+                </p>
+                <p className="text-2xl font-bold mt-4 text-center">
+                  🗳️ Electors:{" "}
+                  <span className="text-yellow-500">
+                    {candidate.elector_count}
+                  </span>
+                </p>
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => handleSelectCandidate(candidate._id)}
+                    className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white font-bold px-6 py-3 rounded-full shadow-md hover:shadow-lg transform hover:scale-110 transition-all"
+                  >
+                    Vote for {candidate.candidate_name}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

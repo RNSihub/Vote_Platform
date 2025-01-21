@@ -7,12 +7,11 @@ const AdminPage: React.FC = () => {
   const navigate = useNavigate(); // Initialize the navigate function
 
   const [formData, setFormData] = useState({
-    product_name: "",
-    product_price: "",
-    discount: "",
+    candidate_name: "",
+    candidate_age: "",
     description: "",
   });
-  const [productImage, setProductImage] = useState<string | null>(null); // Change to store base64 string
+  const [candidateImage, setcandidateImage] = useState<string | null>(null); // Change to store base64 string
   const [message, setMessage] = useState<string>("");
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -31,21 +30,21 @@ const AdminPage: React.FC = () => {
       if (!allowedTypes.includes(file.type)) {
         setMessage("Invalid file type. Only JPEG and PNG are allowed.");
         setIsError(true);
-        setProductImage(null);
+        setcandidateImage(null);
         return;
       }
 
       if (file.size > maxSize) {
         setMessage("File size exceeds 2MB. Please upload a smaller file.");
         setIsError(true);
-        setProductImage(null);
+        setcandidateImage(null);
         return;
       }
 
       // Convert image to base64
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProductImage(reader.result as string); // Set base64 string
+        setcandidateImage(reader.result as string); // Set base64 string
         setMessage("");
       };
       reader.readAsDataURL(file); // Convert the file to base64
@@ -57,13 +56,12 @@ const AdminPage: React.FC = () => {
 
     // Validation: Ensure all required fields are filled
     if (
-      !formData.product_name ||
-      !formData.product_price ||
-      !formData.discount ||
+      !formData.candidate_name ||
+      !formData.candidate_age ||
       !formData.description ||
-      !productImage
+      !candidateImage
     ) {
-      setMessage("All fields are required, including a product image.");
+      setMessage("All fields are required, including a candidate image.");
       setIsError(true);
       return;
     }
@@ -72,135 +70,126 @@ const AdminPage: React.FC = () => {
 
     // Create form data
     const data = new FormData();
-    data.append("product_name", formData.product_name);
-    data.append("product_price", formData.product_price);
-    data.append("discount", formData.discount);
+    data.append("candidate_name", formData.candidate_name);
+    data.append("candidate_age", formData.candidate_age);
     data.append("description", formData.description);
-    if (productImage) {
-      data.append("product_image", productImage); // Append base64 string
+    if (candidateImage) {
+      data.append("candidate_image", candidateImage); // Append base64 string
     }
 
     try {
-      const response = await axios.post("http://localhost:8000/api/add-product/", data, {
+      const response = await axios.post("http://localhost:8000/api/add-candidate/", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log("Product added:", response.data);
-      setMessage("Product added successfully!");
+      console.log("candidate added:", response.data);
+      setMessage("candidate added successfully!");
       setIsError(false);
 
       // Reset form fields
       setFormData({
-        product_name: "",
-        product_price: "",
-        discount: "",
+        candidate_name: "",
+        candidate_age: "",
         description: "",
       });
-      setProductImage(null);
+      setcandidateImage(null);
     } catch (error) {
       console.error(error);
-      setMessage("Error adding product. Please try again.");
+      setMessage("Error adding candidate. Please try again.");
       setIsError(true);
     } finally {
       setIsLoading(false);
     }
   };
 
+
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900">
-      <div className="container mx-auto p-8">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate("/home")} // Navigate to home page
-          className="mb-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-        >
-          Back to Home
-        </button>
+    <div className="container mx-auto py-16">
+      <div className="flex justify-center items-center">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold mb-6 text-center">Add Candidate</h1>
 
-        <h1 className="text-3xl font-bold text-center mb-6">Admin Page - Add Product</h1>
+          {message && (
+            <div
+              className={`mb-4 text-center rounded-md p-3 ${
+                isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+              }`}
+            >
+              {message}
+            </div>
+          )}
 
-        {/* Success or Error Message */}
-        {message && (
-          <div
-            className={`p-4 mb-6 rounded-lg text-center ${
-              isError ? "bg-red-500 text-white" : "bg-green-500 text-white"
-            }`}
-          >
-            {message}
-          </div>
-        )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="candidate_name" className="block text-sm font-medium text-gray-700">
+                Candidate Name
+              </label>
+              <input
+                type="text"
+                id="candidate_name"
+                name="candidate_name"
+                value={formData.candidate_name}
+                onChange={handleChange}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter candidate name"
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-lg">
-          <div>
-            <label className="block text-sm font-medium">Product Name</label>
-            <input
-              type="text"
-              name="product_name"
-              value={formData.product_name}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter product name"
-            />
-          </div>
+            <div>
+              <label htmlFor="candidate_image" className="block text-sm font-medium text-gray-700">
+                Candidate Image
+              </label>
+              <input
+                type="file"
+                id="candidate_image"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium">Product Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
+            <div>
+              <label htmlFor="candidate_age" className="block text-sm font-medium text-gray-700">
+                Candidate Age
+              </label>
+              <input
+                type="number"
+                id="candidate_age"
+                name="candidate_age"
+                value={formData.candidate_age}
+                onChange={handleChange}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter candidate age"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium">Product Price</label>
-            <input
-              type="number"
-              name="product_price"
-              value={formData.product_price}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter product price"
-            />
-          </div>
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter candidate description"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium">Discount (%)</label>
-            <input
-              type="number"
-              name="discount"
-              value={formData.discount}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter discount percentage"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter product description"
-              rows={4}
-            ></textarea>
-          </div>
-
-          <button
-            type="submit"
-            className={`w-full px-4 py-2 text-white rounded-lg font-semibold transition duration-300 ${
-              isLoading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            }`}
-            disabled={isLoading}
-          >
-            {isLoading ? "Adding Product..." : "Add Product"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full px-4 py-2 text-white rounded-md font-semibold bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Adding candidate...' : 'Add candidate'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
 };
+
 
 export default AdminPage;
