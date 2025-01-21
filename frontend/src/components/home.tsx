@@ -3,27 +3,27 @@ import axios from "axios";
 import Header from "./Header";
 import Footer from "./Footer";
 
-interface Product {
+interface candidate {
   _id: string;
-  product_name: string;
-  product_price: number;
-  product_image: string;
+  candidate_name: string;
+  candidate_price: number;
+  candidate_image: string;
   description: string;
   discount: number;
 }
 
 const Home: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [candidates, setcandidates] = useState<candidate[]>([]);
 
   useEffect(() => {
-    // Fetch products from the backend
+    // Fetch candidates from the backend
     axios
-      .get("http://localhost:8000/api/products/")
+      .get("http://localhost:8000/api/candidates/")
       .then((response) => {
-        setProducts(response.data); // Set products to the state
+        setcandidates(response.data); // Set candidates to the state
       })
       .catch((error) => {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching candidates:", error);
       });
   }, []);
 
@@ -36,21 +36,21 @@ const Home: React.FC = () => {
           This is an example of a home page with a header and footer.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
+          {candidates.map((candidate) => (
             <div
-              key={product._id}
+              key={candidate._id}
               className="bg-white text-black rounded-lg shadow-lg overflow-hidden"
             >
               <img
-                src={`data:image/jpeg;base64,${product.product_image}`}
-                alt={product.product_name}
+                src={`data:image/jpeg;base64,${candidate.candidate_image}`}
+                alt={candidate.candidate_name}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h2 className="text-2xl font-bold">{product.product_name}</h2>
-                <p className="text-lg text-gray-700 mt-2">{product.description}</p>
-                <p className="text-xl font-semibold text-blue-600 mt-4">${product.product_price}</p>
-                <p className="text-xl font-semibold text-red-600 mt-4">discount is ${product.discount}</p>
+                <h2 className="text-2xl font-bold">{candidate.candidate_name}</h2>
+                <p className="text-lg text-gray-700 mt-2">{candidate.description}</p>
+                <p className="text-xl font-semibold text-blue-600 mt-4">${candidate.candidate_price}</p>
+                <p className="text-xl font-semibold text-red-600 mt-4">discount is ${candidate.discount}</p>
                 <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white mt-4">
                   Add to Cart
                 </button>
