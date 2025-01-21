@@ -74,12 +74,7 @@ const Home: React.FC = () => {
                 <p className="text-xl font-medium text-yellow-400">
                   Age: {candidate.candidate_age} years
                 </p>
-                <p className="text-2xl font-bold mt-4 text-center">
-                  🗳️ Electors:{" "}
-                  <span className="text-yellow-500">
-                    {candidate.elector_count}
-                  </span>
-                </p>
+                
                 <div className="flex justify-center mt-8">
                   <button
                     onClick={() => handleSelectCandidate(candidate._id)}
