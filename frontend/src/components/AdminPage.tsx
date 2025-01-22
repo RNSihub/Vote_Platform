@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 interface Candidate {
@@ -10,6 +11,7 @@ interface Candidate {
 
 const AdminPage: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch candidates with vote counts from the backend
@@ -23,12 +25,24 @@ const AdminPage: React.FC = () => {
       });
   }, []);
 
+  const handleAddCandidate = () => {
+    navigate("/adminhome"); // Redirect to the admin home page
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white">
       <div className="container mx-auto py-16 px-8">
         <h1 className="text-5xl font-extrabold text-center mb-10 tracking-wide">
           🗳️ Admin Dashboard - Candidate Votes 🗳️
         </h1>
+        <div className="flex justify-end mb-8">
+          <button
+            onClick={handleAddCandidate}
+            className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 text-white font-bold px-6 py-3 rounded-full shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
+          >
+            ➕ Add Candidate
+          </button>
+        </div>
         <p className="text-center text-lg text-gray-400 mb-12">
           View the total votes each candidate has received.
         </p>

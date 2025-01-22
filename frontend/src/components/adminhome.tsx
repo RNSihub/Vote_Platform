@@ -85,6 +85,8 @@ const Adminhome: React.FC = () => {
       setMessage("candidate added successfully!");
       setIsError(false);
 
+      navigate("/adminpage");
+
       // Reset form fields
       setFormData({
         candidate_name: "",
