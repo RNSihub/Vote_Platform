@@ -247,13 +247,39 @@ def get_candidates(request):
 
     return Response(candidates)
 
+from bson import ObjectId
+
+@api_view(['POST'])
 def vote_candidate(request, id):
-    if request.method == "POST":
-        try:
-            candidate = candidates_collection.objects.get(pk=id)
-            candidate.elector_count += 1
-            candidate.save()
-            return JsonResponse({"message": "Vote registered successfully!"})
-        except candidates_collection.DoesNotExist:
+    try:
+        # Find the candidate by ID
+        candidate = candidates_collection.find_one({"_id": ObjectId(id)})
+
+        if not candidate:
             return JsonResponse({"error": "Candidate not found."}, status=404)
-    return JsonResponse({"error": "Invalid request method."}, status=400)
+
+        # Increment the elector count
+        elector_count = candidate.get('elector_count', 0) + 1
+        candidates_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {"elector_count": elector_count}}
+        )
+
+        return JsonResponse({"message": f"Successfully voted for {candidate['candidate_name']}!"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@api_view(['GET'])
+def admin_view_candidates(request):
+    """
+    Endpoint to fetch all candidates along with their vote counts for the admin.
+    """
+    try:
+        candidates = list(candidates_collection.find())
+        for candidate in candidates:
+            candidate['_id'] = str(candidate['_id'])  # Convert ObjectId to string
+            candidate['elector_count'] = candidate.get('elector_count', 0)  # Default to 0 if not present
+
+        return Response(candidates, status=status.HTTP_200_OK)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

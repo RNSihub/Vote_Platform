@@ -12,6 +12,7 @@ interface Candidate {
 
 const Home: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch candidates from the backend
@@ -26,6 +27,8 @@ const Home: React.FC = () => {
   }, []);
 
   const handleSelectCandidate = (id: string) => {
+    const selectedCandidate = candidates.find(candidate => candidate._id === id);
+
     // Update elector count locally for immediate feedback
     setCandidates((prevCandidates) =>
       prevCandidates.map((candidate) =>
@@ -34,6 +37,11 @@ const Home: React.FC = () => {
           : candidate
       )
     );
+
+    // Show success message
+    if (selectedCandidate) {
+      setSuccessMessage(`You successfully voted for ${selectedCandidate.candidate_name}!`);
+    }
 
     // Optionally, update elector count on the backend
     axios
@@ -51,6 +59,14 @@ const Home: React.FC = () => {
           Make your voice count by voting for a candidate. Watch their elector
           count increase in real time!
         </p>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="text-center mb-8 bg-green-600 text-white py-3 px-5 rounded-md shadow-lg">
+            {successMessage}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {candidates.map((candidate) => (
             <div

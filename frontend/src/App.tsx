@@ -4,6 +4,7 @@ import Login from "./components/Login";
 import Home from "./components/home";
 import Signup from "./components/Signup";
 import Adminhome from "./components/adminhome";
+import AdminPage from "./components/AdminPage";
 
 
 
@@ -16,6 +17,7 @@ const App: React.FC = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/home" element={<Home />} />
         <Route path="/adminhome" element={<Adminhome />} />
+        <Route path="/admin" element={<AdminPage />} />
       
       </Routes>
     </Router>
@@ -23,3 +25,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+
