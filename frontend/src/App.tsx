@@ -7,6 +7,7 @@ import Adminhome from "./components/adminhome";
 
 
 
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -15,8 +16,7 @@ const App: React.FC = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/home" element={<Home />} />
         <Route path="/adminhome" element={<Adminhome />} />
-
-
+      
       </Routes>
     </Router>
   );
