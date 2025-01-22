@@ -1,33 +1,20 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
 
-const AdminDashboard: React.FC = () => {
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import the useNavigate hook
+
+const Adminhome: React.FC = () => {
+  const navigate = useNavigate(); // Initialize the navigate function
+
   const [formData, setFormData] = useState({
     candidate_name: "",
     candidate_age: "",
     description: "",
   });
-  const [candidateImage, setCandidateImage] = useState<string | null>(null);
-  const [candidates, setCandidates] = useState<any[]>([]);
+  const [candidateImage, setcandidateImage] = useState<string | null>(null); // Change to store base64 string
   const [message, setMessage] = useState<string>("");
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  // Fetch candidates when the component loads
-  useEffect(() => {
-    fetchCandidates();
-  }, []);
-
-  const fetchCandidates = async () => {
-    try {
-      const response = await axios.get("http://localhost:8000/api/candidates/");
-      setCandidates(response.data);
-    } catch (error) {
-      console.error("Error fetching candidates:", error);
-      setMessage("Failed to fetch candidates.");
-      setIsError(true);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -43,30 +30,37 @@ const AdminDashboard: React.FC = () => {
       if (!allowedTypes.includes(file.type)) {
         setMessage("Invalid file type. Only JPEG and PNG are allowed.");
         setIsError(true);
-        setCandidateImage(null);
+        setcandidateImage(null);
         return;
       }
 
       if (file.size > maxSize) {
         setMessage("File size exceeds 2MB. Please upload a smaller file.");
         setIsError(true);
-        setCandidateImage(null);
+        setcandidateImage(null);
         return;
       }
 
+      // Convert image to base64
       const reader = new FileReader();
       reader.onloadend = () => {
-        setCandidateImage(reader.result as string);
+        setcandidateImage(reader.result as string); // Set base64 string
         setMessage("");
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // Convert the file to base64
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.candidate_name || !formData.candidate_age || !formData.description || !candidateImage) {
+    // Validation: Ensure all required fields are filled
+    if (
+      !formData.candidate_name ||
+      !formData.candidate_age ||
+      !formData.description ||
+      !candidateImage
+    ) {
       setMessage("All fields are required, including a candidate image.");
       setIsError(true);
       return;
@@ -74,30 +68,32 @@ const AdminDashboard: React.FC = () => {
 
     setIsLoading(true);
 
-    const data = {
-      ...formData,
-      candidate_image: candidateImage,
-    };
+    // Create form data
+    const data = new FormData();
+    data.append("candidate_name", formData.candidate_name);
+    data.append("candidate_age", formData.candidate_age);
+    data.append("description", formData.description);
+    if (candidateImage) {
+      data.append("candidate_image", candidateImage); // Append base64 string
+    }
 
     try {
       const response = await axios.post("http://localhost:8000/api/add-candidate/", data, {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      setMessage("Candidate added successfully!");
+      console.log("candidate added:", response.data);
+      setMessage("candidate added successfully!");
       setIsError(false);
 
-      // Add the new candidate to the list
-      setCandidates([...candidates, response.data]);
-
+      // Reset form fields
       setFormData({
         candidate_name: "",
         candidate_age: "",
         description: "",
       });
-      setCandidateImage(null);
+      setcandidateImage(null);
     } catch (error) {
-      console.error("Error adding candidate:", error);
+      console.error(error);
       setMessage("Error adding candidate. Please try again.");
       setIsError(true);
     } finally {
@@ -105,19 +101,17 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold text-center mb-8">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Form Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4">Add Candidate</h2>
+  return (
+    <div className="container mx-auto py-16">
+      <div className="flex justify-center items-center">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold mb-6 text-center">Add Candidate</h1>
 
           {message && (
             <div
-              className={`mb-4 rounded-md p-3 text-center ${
-                isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+              className={`mb-4 text-center rounded-md p-3 ${
+                isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
               }`}
             >
               {message}
@@ -188,40 +182,14 @@ const AdminDashboard: React.FC = () => {
               className="w-full px-4 py-2 text-white rounded-md font-semibold bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
-              {isLoading ? "Adding Candidate..." : "Add Candidate"}
+              {isLoading ? 'Adding candidate...' : 'Add candidate'}
             </button>
           </form>
-        </div>
-
-        {/* Candidate List Section */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">All Candidates</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {candidates.length > 0 ? (
-              candidates.map((candidate) => (
-                <div
-                  key={candidate._id}
-                  className="bg-white rounded-lg shadow-md p-4 text-center"
-                >
-                  <img
-                    src={`data:image/jpeg;base64,${candidate.candidate_image}`}
-                    alt={candidate.candidate_name}
-                    className="w-full h-40 object-cover rounded-md mb-4"
-                  />
-                  <h3 className="text-xl font-bold">{candidate.candidate_name}</h3>
-                  <p className="text-gray-700">Age: {candidate.candidate_age}</p>
-                  <p className="text-gray-700 mt-2">{candidate.description}</p>
-                </div>
-              ))
-            ) : (
-              <p>No candidates available.</p>
-            )}
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+
+export default Adminhome;
