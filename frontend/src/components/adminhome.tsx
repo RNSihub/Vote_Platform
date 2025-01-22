@@ -20,7 +20,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchCandidates = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/get-candidates/");
+      const response = await axios.get("http://localhost:8000/api/candidates/");
       setCandidates(response.data);
     } catch (error) {
       console.error("Error fetching candidates:", error);
@@ -76,7 +76,7 @@ const AdminDashboard: React.FC = () => {
 
     const data = {
       ...formData,
-      candidate_image: candidateImage, // Pass base64 image directly
+      candidate_image: candidateImage,
     };
 
     try {
@@ -195,31 +195,29 @@ const AdminDashboard: React.FC = () => {
 
         {/* Candidate List Section */}
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Available Candidates</h2>
+          <h2 className="text-2xl font-semibold mb-4">All Candidates</h2>
 
-          {candidates.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {candidates.map((candidate) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {candidates.length > 0 ? (
+              candidates.map((candidate) => (
                 <div
                   key={candidate._id}
-                  className="p-4 border border-gray-300 rounded-lg shadow-md"
+                  className="bg-white rounded-lg shadow-md p-4 text-center"
                 >
-                  <h3 className="text-lg font-semibold">{candidate.candidate_name}</h3>
+                  <img
+                    src={`data:image/jpeg;base64,${candidate.candidate_image}`}
+                    alt={candidate.candidate_name}
+                    className="w-full h-40 object-cover rounded-md mb-4"
+                  />
+                  <h3 className="text-xl font-bold">{candidate.candidate_name}</h3>
                   <p className="text-gray-700">Age: {candidate.candidate_age}</p>
-                  <p className="text-gray-700">{candidate.description}</p>
-                  {candidate.candidate_image && (
-                    <img
-                      src={`data:image/jpeg;base64,${candidate.candidate_image}`}
-                      alt={candidate.candidate_name}
-                      className="mt-4 w-full h-40 object-cover rounded-md"
-                    />
-                  )}
+                  <p className="text-gray-700 mt-2">{candidate.description}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p>No candidates available.</p>
-          )}
+              ))
+            ) : (
+              <p>No candidates available.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
