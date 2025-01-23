@@ -14,7 +14,6 @@ const AdminPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch candidates with vote counts from the backend
     axios
       .get("http://localhost:8000/api/admin/candidates/")
       .then((response) => {
@@ -26,7 +25,7 @@ const AdminPage: React.FC = () => {
   }, []);
 
   const handleAddCandidate = () => {
-    navigate("/adminhome"); // Redirect to the admin home page
+    navigate("/adminhome");
   };
 
   return (

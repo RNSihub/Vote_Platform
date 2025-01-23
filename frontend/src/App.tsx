@@ -9,6 +9,7 @@ import AdminPage from "./components/AdminPage";
 
 
 
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -18,6 +19,7 @@ const App: React.FC = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/adminhome" element={<Adminhome />} />
         <Route path="/adminpage" element={<AdminPage />} />
+        
       
       </Routes>
     </Router>
